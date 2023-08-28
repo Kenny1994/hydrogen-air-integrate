@@ -8,8 +8,10 @@ import {
   VariantSelector,
   getSelectedProductOptions,
   CartForm,
+  AnalyticsPageType,
 } from '@shopify/hydrogen';
 import {getVariantUrl} from '~/utils';
+import {useAirReviewMain} from '~/hooks/useAirReviewMain';
 
 export const meta = ({data}) => {
   return [{title: `Hydrogen | ${data.product.title}`}];
@@ -68,7 +70,14 @@ export async function loader({params, request, context}) {
     variables: {handle},
   });
 
-  return defer({product, variants});
+  return defer({
+    product,
+    variants,
+    analytics: {
+      pageType: AnalyticsPageType.product,
+      resourceId: product.id,
+    },
+  });
 }
 
 function redirectToFirstVariant({product, request}) {
@@ -89,7 +98,8 @@ function redirectToFirstVariant({product, request}) {
 }
 
 export default function Product() {
-  const {product, variants} = useLoaderData();
+  const {product, variants, analytics} = useLoaderData();
+  useAirReviewMain({product, analytics});
   const {selectedVariant} = product;
   return (
     <div className="product">
@@ -157,6 +167,7 @@ function ProductMain({selectedVariant, product, variants}) {
       <br />
       <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
       <br />
+      <div className="AirReviews-Widget--Block" />
     </div>
   );
 }

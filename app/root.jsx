@@ -15,6 +15,7 @@ import favicon from '../public/favicon.svg';
 import resetStyles from './styles/reset.css';
 import appStyles from './styles/app.css';
 import {Layout} from '~/components/Layout';
+import {useAirReview} from '~/hooks/useAirReview';
 
 // This is important to avoid re-fetching root queries on sub-navigations
 export const shouldRevalidate = ({formMethod, currentUrl, nextUrl}) => {
@@ -49,7 +50,17 @@ export function links() {
 
 export async function loader({context}) {
   const {storefront, session, cart} = context;
-  const customerAccessToken = await session.get('customerAccessToken');
+  const [
+    customerAccessToken,
+    airShopData,
+    airSettingsData,
+    airTranslationData,
+  ] = await Promise.all([
+    session.get('customerAccessToken'),
+    getAirReviewData({storefront, namespace: 'air_reviews_shop'}),
+    getAirReviewData({storefront, namespace: 'air_reviews_settings'}),
+    getAirReviewData({storefront, namespace: 'air_reviews_translation'}),
+  ]);
   const publicStoreDomain = context.env.PUBLIC_STORE_DOMAIN;
 
   // validate the customer access token is valid
@@ -84,6 +95,9 @@ export async function loader({context}) {
       header: await headerPromise,
       isLoggedIn,
       publicStoreDomain,
+      airShopData,
+      airSettingsData,
+      airTranslationData,
     },
     {headers},
   );
@@ -91,7 +105,7 @@ export async function loader({context}) {
 
 export default function App() {
   const data = useLoaderData();
-
+  useAirReview(data);
   return (
     <html lang="en">
       <head>
@@ -254,3 +268,26 @@ const FOOTER_QUERY = `#graphql
   }
   ${MENU_FRAGMENT}
 `;
+
+/**
+ *
+ * @returns {Promise<*>}
+ */
+async function getAirReviewData({storefront, namespace}) {
+  const airReviewData = await storefront.query(
+    `
+      #graphql
+      query {
+        shop {
+          metafield (namespace: "${namespace}", key: "data"){
+            value
+          }
+        }
+      }
+    `,
+    {variables: {}},
+  );
+  return airReviewData.shop.metafield
+    ? JSON.parse(airReviewData.shop.metafield.value)
+    : null;
+}
