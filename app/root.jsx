@@ -55,11 +55,13 @@ export async function loader({context}) {
     airShopData,
     airSettingsData,
     airTranslationData,
+    airHasStorefrontData,
   ] = await Promise.all([
     session.get('customerAccessToken'),
     getAirReviewData({storefront, namespace: 'air_reviews_shop'}),
     getAirReviewData({storefront, namespace: 'air_reviews_settings'}),
     getAirReviewData({storefront, namespace: 'air_reviews_translation'}),
+    getAirReviewData({storefront, namespace: 'air_reviews_has_storefront_token'}),
   ]);
   const publicStoreDomain = context.env.PUBLIC_STORE_DOMAIN;
 
@@ -98,6 +100,7 @@ export async function loader({context}) {
       airShopData,
       airSettingsData,
       airTranslationData,
+      airHasStorefrontData,
     },
     {headers},
   );

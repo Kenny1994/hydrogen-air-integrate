@@ -31,8 +31,7 @@ export function useAirReviewMain({product, analytics}) {
       };
       loadScript({
         id: 'air-review-script',
-        url: `https://cdn.shopify.com/extensions/505ce933-6eff-47ee-a32f-dee5ae134593/0.0.0/assets/air-reviews-main.min.js?v=${new Date().getTime()}`,
-        //   url: `https://localhost:3000/scripttag/air-reviews-main.min.js`,
+        url: `https://cdn.shopify.com/extensions/505ce933-6eff-47ee-a32f-dee5ae134593/0.0.0/assets/air-reviews-main.min.js?v=${new Date().getTime()}`
       });
     } catch (e) {
       // eslint-disable-next-line no-console

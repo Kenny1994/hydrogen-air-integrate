@@ -20,6 +20,7 @@ export function useAirReview(data) {
       window.AIR_REVIEWS.shopData = data.airShopData;
       window.AIR_REVIEWS.settings = data.airSettingsData;
       window.AIR_REVIEWS.translations = data.airTranslationData;
+      window.AIR_REVIEWS.hasStorefrontToken = data.airHasStorefrontData;
       window.AIR_REVIEWS.collections = [];
       window.AIR_REVIEWS.collectionsName = [];
       window.Shopify = window.Shopify || {};
