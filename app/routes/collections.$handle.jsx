@@ -5,10 +5,8 @@ import {
   getPaginationVariables,
   Image,
   Money,
-  AnalyticsPageType,
 } from '@shopify/hydrogen';
 import {useVariantUrl} from '~/utils';
-import {useAirReviewMain} from '~/hooks/useAirReviewMain';
 
 export const meta = ({data}) => {
   return [{title: `Hydrogen | ${data.collection.title} Collection`}];
@@ -34,17 +32,12 @@ export async function loader({request, params, context}) {
       status: 404,
     });
   }
-  return json({
-    collection,
-    analytics: {
-      pageType: AnalyticsPageType.collection,
-    },
-  });
+  return json({collection});
 }
 
 export default function Collection() {
-  const {collection, analytics} = useLoaderData();
-  useAirReviewMain({analytics});
+  const {collection} = useLoaderData();
+
   return (
     <div className="collection">
       <h1>{collection.title}</h1>
@@ -103,11 +96,6 @@ function ProductItem({product, loading}) {
         />
       )}
       <h4>{product.title}</h4>
-      <div
-        className="AirReviews-Widget AirReviews-Widget--Stars"
-        data-review-count={product.airReviewSummary[0]?.value}
-        data-review-avg={product.airReviewSummary[1]?.value}
-      />
       <small>
         <Money data={product.priceRange.minVariantPrice} />
       </small>
@@ -146,12 +134,6 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
           value
         }
       }
-    }
-    airReviewSummary: metafields(identifiers: [
-      {namespace: "air_reviews_product", key: "review_count"},
-      {namespace: "air_reviews_product", key: "review_avg"}
-    ]) {
-      value
     }
   }
 `;

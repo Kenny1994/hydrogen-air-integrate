@@ -1,8 +1,7 @@
 import {defer} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link} from '@remix-run/react';
 import {Suspense} from 'react';
-import {Image, Money, AnalyticsPageType} from '@shopify/hydrogen';
-import {useAirReviewMain} from '~/hooks/useAirReviewMain';
+import {Image, Money} from '@shopify/hydrogen';
 
 export const meta = () => {
   return [{title: 'Hydrogen | Home'}];
@@ -12,25 +11,15 @@ export async function loader({context}) {
   const {storefront} = context;
   const {collections} = await storefront.query(FEATURED_COLLECTION_QUERY);
   const featuredCollection = collections.nodes[0];
-  const recommendedProducts = await storefront.query(
-    RECOMMENDED_PRODUCTS_QUERY,
-  );
+  const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
 
-  return defer({
-    featuredCollection,
-    recommendedProducts,
-    analytics: {
-      pageType: AnalyticsPageType.home,
-    },
-  });
+  return defer({featuredCollection, recommendedProducts});
 }
 
 export default function Homepage() {
   const data = useLoaderData();
-  useAirReviewMain({analytics: data.analytics});
   return (
     <div className="home">
-      <div className="AirReviews-Widget AirReviews-Widget--Carousel"></div>
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />
     </div>
@@ -74,11 +63,6 @@ function RecommendedProducts({products}) {
                     sizes="(min-width: 45em) 20vw, 50vw"
                   />
                   <h4>{product.title}</h4>
-                  <div
-                    className="AirReviews-Widget AirReviews-Widget--Stars"
-                    data-review-count={product.airReviewSummary[0]?.value}
-                    data-review-avg={product.airReviewSummary[1]?.value}
-                  />
                   <small>
                     <Money data={product.priceRange.minVariantPrice} />
                   </small>
@@ -135,12 +119,6 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
         width
         height
       }
-    }
-    airReviewSummary: metafields(identifiers: [
-      {namespace: "air_reviews_product", key: "review_count"},
-      {namespace: "air_reviews_product", key: "review_avg"}
-    ]) {
-      value
     }
   }
   query RecommendedProducts ($country: CountryCode, $language: LanguageCode)

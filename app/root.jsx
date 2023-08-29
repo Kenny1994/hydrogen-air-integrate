@@ -15,8 +15,6 @@ import favicon from '../public/favicon.svg';
 import resetStyles from './styles/reset.css';
 import appStyles from './styles/app.css';
 import {Layout} from '~/components/Layout';
-import {useAirReview} from '~/hooks/useAirReview';
-import getAirReviewData from '~/helpers/getAirReviewData';
 
 // This is important to avoid re-fetching root queries on sub-navigations
 export const shouldRevalidate = ({formMethod, currentUrl, nextUrl}) => {
@@ -51,19 +49,7 @@ export function links() {
 
 export async function loader({context}) {
   const {storefront, session, cart} = context;
-  const [
-    customerAccessToken,
-    airShopData,
-    airSettingsData,
-    airTranslationData,
-    airHasStorefrontData,
-  ] = await Promise.all([
-    session.get('customerAccessToken'),
-    getAirReviewData({storefront, namespace: 'air_reviews_shop'}),
-    getAirReviewData({storefront, namespace: 'air_reviews_settings'}),
-    getAirReviewData({storefront, namespace: 'air_reviews_translation'}),
-    getAirReviewData({storefront, namespace: 'air_reviews_has_storefront_token'}),
-  ]);
+  const customerAccessToken = await session.get('customerAccessToken');
   const publicStoreDomain = context.env.PUBLIC_STORE_DOMAIN;
 
   // validate the customer access token is valid
@@ -98,10 +84,6 @@ export async function loader({context}) {
       header: await headerPromise,
       isLoggedIn,
       publicStoreDomain,
-      airShopData,
-      airSettingsData,
-      airTranslationData,
-      airHasStorefrontData,
     },
     {headers},
   );
@@ -109,7 +91,7 @@ export async function loader({context}) {
 
 export default function App() {
   const data = useLoaderData();
-  useAirReview(data);
+
   return (
     <html lang="en">
       <head>
