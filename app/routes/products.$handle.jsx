@@ -8,8 +8,10 @@ import {
   VariantSelector,
   getSelectedProductOptions,
   CartForm,
+  AnalyticsPageType,
 } from '@shopify/hydrogen';
 import {getVariantUrl} from '~/utils';
+import {useAirReviewMain} from '~/hooks/useAirReviewMain';
 
 export const meta = ({data}) => {
   return [{title: `Hydrogen | ${data.product.title}`}];
@@ -41,7 +43,9 @@ export async function loader({params, request, context}) {
   if (!product?.id) {
     throw new Response(null, {status: 404});
   }
-
+  const airReviewProductData = product.airReviews
+    ? JSON.parse(product.airReviews.value)
+    : {};
   const firstVariant = product.variants.nodes[0];
   const firstVariantIsDefault = Boolean(
     firstVariant.selectedOptions.find(
@@ -68,7 +72,15 @@ export async function loader({params, request, context}) {
     variables: {handle},
   });
 
-  return defer({product, variants});
+  return defer({
+    product,
+    variants,
+    analytics: {
+      pageType: AnalyticsPageType.product,
+      resourceId: product.id,
+    },
+    airReviewProductData,
+  });
 }
 
 function redirectToFirstVariant({product, request}) {
@@ -89,7 +101,8 @@ function redirectToFirstVariant({product, request}) {
 }
 
 export default function Product() {
-  const {product, variants} = useLoaderData();
+  const {product, variants, analytics, airReviewProductData} = useLoaderData();
+  useAirReviewMain({product, analytics, airReviewProductData});
   const {selectedVariant} = product;
   return (
     <div className="product">
@@ -157,6 +170,7 @@ function ProductMain({selectedVariant, product, variants}) {
       <br />
       <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
       <br />
+      <div className="AirReviews-Widget--Block" />
     </div>
   );
 }
@@ -184,7 +198,7 @@ function ProductPrice({selectedVariant}) {
 
 function ProductForm({product, selectedVariant, variants}) {
   return (
-    <div className="product-form">
+    <div className="product-form product__info-wrapper">
       <VariantSelector
         handle={product.handle}
         options={product.options}
@@ -192,6 +206,7 @@ function ProductForm({product, selectedVariant, variants}) {
       >
         {({option}) => <ProductOptions key={option.name} option={option} />}
       </VariantSelector>
+      <div className="AirReviews-Widget AirReviews-Widget--Stars" />
       <br />
       <AddToCartButton
         disabled={!selectedVariant || !selectedVariant.availableForSale}
@@ -327,6 +342,9 @@ const PRODUCT_FRAGMENT = `#graphql
     seo {
       description
       title
+    }
+    airReviews: metafield(namespace: "air_reviews_product", key: "data") {
+      value
     }
   }
   ${PRODUCT_VARIANT_FRAGMENT}
