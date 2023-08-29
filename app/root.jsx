@@ -16,6 +16,7 @@ import resetStyles from './styles/reset.css';
 import appStyles from './styles/app.css';
 import {Layout} from '~/components/Layout';
 import {useAirReview} from '~/hooks/useAirReview';
+import getAirReviewData from '~/helpers/getAirReviewData';
 
 // This is important to avoid re-fetching root queries on sub-navigations
 export const shouldRevalidate = ({formMethod, currentUrl, nextUrl}) => {
@@ -271,26 +272,3 @@ const FOOTER_QUERY = `#graphql
   }
   ${MENU_FRAGMENT}
 `;
-
-/**
- *
- * @returns {Promise<*>}
- */
-async function getAirReviewData({storefront, namespace}) {
-  const airReviewData = await storefront.query(
-    `
-      #graphql
-      query {
-        shop {
-          metafield (namespace: "${namespace}", key: "data"){
-            value
-          }
-        }
-      }
-    `,
-    {variables: {}},
-  );
-  return airReviewData.shop.metafield
-    ? JSON.parse(airReviewData.shop.metafield.value)
-    : null;
-}
